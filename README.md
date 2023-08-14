@@ -32,6 +32,16 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
+## Running in Docker
+
+```bash
+# build 
+$ docker build -t nest-test-app .
+
+# run
+$ docker run -p 80:3000 nest-test-app
+```
+
 ## Test
 
 ```bash
