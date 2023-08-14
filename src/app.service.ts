@@ -1,23 +1,22 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InfoDto } from './dto/info.dto';
-import { ResultDto } from './dto/result.dto';
-
-import { promise } from 'ping';
+import { AppDto, ResultDto } from './dto/result.dto';
+import { exec } from 'child_process';
+import * as Util from 'util';
 
 @Injectable()
 export class AppService {
   async getPingInfo({ params }: InfoDto): Promise<ResultDto> {
-    let response = null;
-    const config = {
-      extra: ['-c', '10'],
-    };
     Logger.log(`===== Starting ping to ${params.host} =====`);
 
-    const waitTimeout = setTimeout(() => {
-      !response && Logger.log(`===== Wait for it... =====`);
-    }, 1000);
+    const asyncExec = Util.promisify(exec);
 
-    response = await promise.probe(params.host, config);
+    const waitTimeout = setTimeout(() => {
+      Logger.log(`===== Wait for it... =====`);
+    }, 4000);
+
+    const { stdout } = await asyncExec(`ping -c 10 ${params.host}`);
+
     Logger.log(`===== Ping to ${params.host} completed =====`);
 
     clearTimeout(waitTimeout);
@@ -28,14 +27,19 @@ export class AppService {
       used: 10,
       description: params.host,
       status: 0,
-      ping: response?.avg,
+      ping: Number(
+        stdout
+          ?.slice(stdout?.indexOf('round-trip'), stdout?.lastIndexOf('ms'))
+          ?.split('=')[1]
+          ?.split('/')[1],
+      ),
       apps: [
-        {
+        new AppDto({
           id: params.id,
           bundleId: params.host,
           platform: 0,
           title: 'Ping data',
-        },
+        }),
       ],
     });
   }

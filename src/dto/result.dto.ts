@@ -9,7 +9,7 @@ import {
   Validate,
 } from 'class-validator';
 
-class AppDto {
+export class AppDto {
   id: string;
   bundleId: string;
   title: string;
